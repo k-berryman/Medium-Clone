@@ -24,6 +24,8 @@ In VSCode, get `Tailwind CSS IntelliSense` extension
 Sanity CMS — managed backend, so non-devs can manage data
 Sanity Studio can be deployed. We plug into the Sanity Studio with a language called Groq, which is have we query and mutate our data. It's kind of like GraphQL.
 
+CMS is a content management system
+
 Sanity Studio handles image uploading and all of that.
 
 Sanity Studio is built in JS & React, so we can customize it. We can deploy this! After deployment, log-in with authorized Sanity Account. It also shows all of the changes and makes reverting to old versions easy.
@@ -247,7 +249,7 @@ What we have now is **static rendering**, meaning everything is pre-built at bui
 
 Server-side rendering is here to help! (SSR)
 
-When using SSR, the server renders per request. It builds it on the client, which means it's fastttt.
+When using SSR, the server renders per request. It builds with Next on the server, which means it's fastttt.
 
 To make SSR work within Next.js, go to `index.tsx`  and use a function called `getServerSideProps`, which is where the server pre-builds the page. Remember this runs every request. Since we're putting it in our `'/'` route, this changes it into a SSR route.
 
@@ -358,3 +360,40 @@ Now destructure the props to get the posts out `({ posts }: Props)`
 Add a `console.log(posts);` to test if the SSR worked and to see if our front-end and back-end are successfully tied together
 
 It worked :D
+
+## Implementing the Posts Section
+Found out I needed `import createImageUrlBuilder from 'sanity/image-url';` in `sanity.js` and `npm install --save @sanity/image-url` in that dir
+
+```
+{/* Go through every post. Each post will be a link */}
+        {posts.map(post => (
+          <Link key={post._id} href={`/post/${post.slug.current}`}>
+            <div>
+              {post.mainImage && (
+                <img
+                  src={urlFor(post.mainImage).url()!}
+                  alt=''
+                />                
+              )}
+
+```
+
+That exclamation point ensures that it's not null... somehow
+Protect it by also saying only render this block if there's a post.mainImage
+
+On small screens, we want a grid column of 1. On medium, 2. On large, 3. Make the outside div a CSS Grid.
+
+When we hover any of it, scale into the picture
+Set entire div to `group`
+On img, `group-hover:scale-105`
+
+## **Incremental Static Regeneration (ISR)**
+An awesome feature of Next.js ... We want dynamic pages determined by the slugs (dynamic slugs). The slugs are determined by the backend. We want to prebuild all of these pages.
+
+What do we mean by prebuild? On deployment, all pages that belong on the site should be prebuilt, so they can be cached. Meaning, when the user comes to the site, it comes up immediately -- little wait time.
+
+Dynamic data makes this icky sticky.
+
+When it's built at build-time, it doesn't really update, so it's an un-updated site, which is a problem. This can be fixed with SSR, but that means that every time a request is made it re-renders the app, which is a bit of a problem.
+
+So we're going to have static pages which are cached and then combined with refreshing the page every 60 seconds, so the cache only stale for 60 seconds (or whatever time interval we select). That's how we get the best of both worlds

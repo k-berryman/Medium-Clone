@@ -26,24 +26,36 @@ const Home: NextPage = ({ posts }: Props) => {
       <Banner />
 
       {/* Posts */}
-      <div>
-        {/* Go through every post. Each post will be a link */}
-        {posts.map(post => (
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 p-2 lg:p-6'>
+        {posts.map((post) => (
           <Link key={post._id} href={`/post/${post.slug.current}`}>
-            <div>
+            <div className='group cursor-pointer border rounded-lg overflow-hidden'>
               {post.mainImage && (
                 <img
+                  className='h-60 w-full object-cover group-hover:scale-105 transition-transform ease-in-out'
                   src={urlFor(post.mainImage).url()!}
                   alt=''
-                />                
+                />
               )}
 
+              <div className='flex justify-between p-5 bg-white'>
+                <div>
+                  <p className='text-lg font-bold'>{post.title}</p>
+                  <p className='text-xs'>{post.description} by {post.author.name}</p>
+                </div>
+
+                {post.mainImage && (
+                  <img
+                    className='h-12 w-12 rounded-full'
+                    src={urlFor(post.author.image).url()!}
+                    alt=''
+                  />
+                )}
+              </div>
             </div>
           </Link>
         ))}
       </div>
-
-
     </div>
   )
 }
