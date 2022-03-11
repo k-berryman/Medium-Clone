@@ -387,6 +387,40 @@ When we hover any of it, scale into the picture
 Set entire div to `group`
 On img, `group-hover:scale-105`
 
+```
+      {/* Posts */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 p-2 lg:p-6'>
+        {posts.map((post) => (
+          <Link key={post._id} href={`/post/${post.slug.current}`}>
+            <div className='group cursor-pointer border rounded-lg overflow-hidden'>
+              {post.mainImage && (
+                <img
+                  className='h-60 w-full object-cover group-hover:scale-105 transition-transform ease-in-out'
+                  src={urlFor(post.mainImage).url()!}
+                  alt=''
+                />
+              )}
+
+              <div className='flex justify-between p-5 bg-white'>
+                <div>
+                  <p className='text-lg font-bold'>{post.title}</p>
+                  <p className='text-xs'>{post.description} by {post.author.name}</p>
+                </div>
+
+                {post.mainImage && (
+                  <img
+                    className='h-12 w-12 rounded-full'
+                    src={urlFor(post.author.image).url()!}
+                    alt=''
+                  />
+                )}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+```
+
 ## **Incremental Static Regeneration (ISR)**
 An awesome feature of Next.js ... We want dynamic pages determined by the slugs (dynamic slugs). The slugs are determined by the backend. We want to prebuild all of these pages.
 
@@ -397,3 +431,72 @@ Dynamic data makes this icky sticky.
 When it's built at build-time, it doesn't really update, so it's an un-updated site, which is a problem. This can be fixed with SSR, but that means that every time a request is made it re-renders the app, which is a bit of a problem.
 
 So we're going to have static pages which are cached and then combined with refreshing the page every 60 seconds, so the cache only stale for 60 seconds (or whatever time interval we select). That's how we get the best of both worlds
+
+### Linking to the Post Page
+Each slug needs it's own page
+In `pages/` create a folder called `post/`
+In `post/` create a file named `[slug].tsx` yes with brackets...
+This corresponds to `/post/[dynamic_value_slug]`
+The variable name is going to be `slug`, which we can access
+
+Set this up as a component
+```
+function Post() {
+  return <div></div>;
+}
+
+export default Post;
+
+```
+We're going to be using react hook form for form validation
+
+We're going to pre-fetch all the data
+1. We need to tell Next.js how it knows which posts exists (`getStaticPaths` which lets Next.js know which routes to build in advance aka pre-render)
+`import { sanityClient, urlFor } from '../../sanity';`
+
+```
+export const getStaticPaths =  async () => {
+  // pre-fetch all routes with a query from Sanity CMS to find all posts for us
+  // GROQ syntax from Sanity CMS
+  const query = `*[_type =="post"]{
+    _id,
+    slug {
+      current
+    }
+  }`;
+
+  const posts = await sanityClient.fetch(query);
+
+  // figure out the paths
+  // we need to pass Next.js the paths as an array where each object
+  // has a key called params and then the path inside of it
+  // this creates a list of paths. this is the structure Next.js expects
+  const paths = posts.map((post: Post) => ({
+    params: {
+      slug: post.slug.current
+    }
+  }));
+
+  return {
+    paths,
+    // show 404 page if it doesn't exist
+    fallback: 'blocking'
+  };
+}
+
+```
+
+But we cannot use `getStaticPaths` alone.
+We've told Next.js which pages to prepare, but now we need to tell Next.js that when it tries to prepare that page, how will it use that slug to fetch that post's info. We need to go each page and `getStaticProps`
+
+When returning object `notFound`  in Next.js when using `fallbacl: "blocking"`, it returns a 404 page
+
+wohoo!!
+
+1. It first finds the pages that exist with `getStaticPaths`
+2. Then it runs `getStaticProps` which populates the info for the page
+
+Now, it prebuilds the pages. Next, ISR.
+
+What about when someone updates the blog? We need a new version to be updated to the cache, basically a new page.
+`revalidate: 60,` in `[slug].tsx` enables ISR. This means after 60 seconds, update the old cached version. It'll SSR and then cache it and then it rendered for the next 60 seconds in a static fashion.
