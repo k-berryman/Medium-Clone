@@ -13,7 +13,7 @@ interface Props {
 }
 
 
-const Home: NextPage = ({ posts }: Props) => {
+const Home: NextPage = ({ posts }) => {
   console.log(posts);
   return (
     <div className='max-w-7xl mx-auto'>
