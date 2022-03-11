@@ -765,3 +765,34 @@ Alrighty now we have
 6. Functional
 
 heck yeah
+
+Sanity CMS is so good for blogs & ecommerce
+
+### Deploy to Vercel
+We want a way to always have access to our CMS backend
+`cd mediumclone` (our backend folder)
+`sanity deploy`
+I named it `kaitlinsSanity`
+
+```
+Success! Studio deployed to https://kaitlinssanity.sanity.studio/
+```
+
+And it requires Google Auth to Sign-In
+
+Local and deployed versions are connected in live-time
+
+----
+
+We've deployed our backend (Sanity Studio).
+Now we need to deploy our Next.js App
+
+Add repo to GitHub if I haven't already, lol
+Connect local repo to GitHub repo
+Add backend folder's node_modules to .gitignore `mediumclone/node_modules`
+Push to GitHub
+
+Go to Vercel
+https://vercel.com/dashboard
+
+Click new project, import Git Repo, pop environment variables into Vercel, click deploy
