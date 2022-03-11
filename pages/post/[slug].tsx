@@ -4,6 +4,7 @@ import { GetStaticProps } from 'next';
 import { Post } from '../../typings';
 import PortableText from 'react-portable-text';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { useState } from 'react';
 
 interface inputFormInput {
   _id: string;
@@ -19,6 +20,8 @@ interface Props {
 
 // Was props: Props before destructuring
 function Post({ post }: Props) {
+  const [submitted, setSubmitted] = useState(false);
+
   // console.log(post);
 
   const {
@@ -33,8 +36,10 @@ function Post({ post }: Props) {
       method: 'POST',
       body: JSON.stringify(data),
     }).then(() => {
+      setSubmitted(true);
       console.log(data);
     }).catch((err) => {
+      setSubmitted(false);
       console.log(err);
     })
   };
@@ -90,8 +95,18 @@ function Post({ post }: Props) {
             }
           />
         </div>
+      </article>
 
-        <hr className='max-w-lg my-5 mx-auto border border-yellow-500' />
+      <hr className='max-w-lg my-5 mx-auto border border-yellow-500' />
+
+
+
+      {submitted ? (
+        <div className='flex flex-col p-10 my-10 bg-yellow-500 text-white max-w-2xl mx-auto'>
+          <h3 className='text-3xl font-bold'>Thank you for submitting your comment!</h3>
+          <p>Once it's approved, it will appear below!</p>
+        </div>
+      ) : (
 
         <form
           className='flex flex-col p-5 max-w-2xl mx-auto mb-10'
@@ -155,9 +170,18 @@ function Post({ post }: Props) {
 
           <input className='shadow bg-yellow-500 hover:bg-yellow-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer' type='submit' />
         </form>
+      )}
+      {/* Comments */}
+      <div className='flex flex-col p-10 my-10 max-w-2xl mx-auto shadow-yellow-500 shadow space-y-2'>
+        <h3 className='text-4xl'>Comments</h3>
+        <hr className='pb-2'/>
 
-
-      </article>
+        {post.comments.map((comment) => (
+          <div key={comment._id}>
+            <p><span className='text-yellow-500'>{comment.name}</span>: {comment.comment}</p>
+          </div>
+        ))}
+      </div>
     </main>
   );
 }

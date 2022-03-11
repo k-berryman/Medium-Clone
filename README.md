@@ -713,4 +713,55 @@ Then go to `schema.js`
 
 Dope
 
-Let's add some kind of confirmation that the form was successfully submitted
+-----
+
+Let's add some kind of confirmation that the form was successfully submitted -- feedback
+
+Go back to `[slug].tsx`
+Create state to keep track of submission status
+
+If submitted, show success message. otherwise, show form
+
+Yay, done
+
+---
+
+Now we need to show the comments, filtered by approved comments
+
+Go to and add a `sub-query` for everything of type comment, with the post reference equal to the id of the post, and make sure approved is true
+
+In `[slug].tsx`, check that `query` inside of `getStaticProps` has comments ... it does. We need to update our Post type definition. Go to `typings.d.ts` and add a comment type at the bottom
+
+```
+
+export interface Comment {
+  approved: boolean;
+  comment: string;
+  email: string;
+  name: string;
+  post: {
+    _ref: string;
+    _type: string;
+  };
+  _createdAt: string;
+  _id: string;
+  _rev: string;
+  _type: string;
+  _updatedAt: string;
+}
+
+```
+
+In Post add `comments: Comment[]` it's of type Comment Array
+
+Go back to `[slug].tsx` and underneath the form, display comments
+
+Alrighty now we have
+1. Form validation
+2. Comments
+3. Comment Approval
+4. CMS Management
+5. Fully Responsive
+6. Functional
+
+heck yeah
