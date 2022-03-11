@@ -513,4 +513,9 @@ Add into the `PortableText` definition in `node_modules/react-portable-text/dist
 
 serializers defines what to do when coming across a particular kind of element, like a h1
 
-### Now we need a mutation
+### Implementing Comments
+Now we're going to use an API react-hook-form to implement and validate a form, we'll push the info to the db and then render it (the comments)
+
+We don't need redux in this build because of the way we're pre-rendering the pages
+
+Keep on going in `[slug].tsx`
