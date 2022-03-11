@@ -496,7 +496,21 @@ wohoo!!
 1. It first finds the pages that exist with `getStaticPaths`
 2. Then it runs `getStaticProps` which populates the info for the page
 
-Now, it prebuilds the pages. Next, ISR.
+Now, it prebuilds the pages. Next, ISR. Incremental Static Regeneration.
 
 What about when someone updates the blog? We need a new version to be updated to the cache, basically a new page.
 `revalidate: 60,` in `[slug].tsx` enables ISR. This means after 60 seconds, update the old cached version. It'll SSR and then cache it and then it rendered for the next 60 seconds in a static fashion.
+
+The old cache pages are removed from the server
+
+### Building the Post Page
+Build out the Post component in `[slug].tsx	`
+To display the body, we're going to use React Portable Text
+In main dir, `npm install react-portable-text` this was built to work with Sanity CMS
+`import PortableText from 'react-portable-text';`
+
+Add into the `PortableText` definition in `node_modules/react-portable-text/dist/index.d.ts` after `serializers` both dataset and projectId
+
+serializers defines what to do when coming across a particular kind of element, like a h1
+
+### Now we need a mutation
