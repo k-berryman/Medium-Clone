@@ -3,7 +3,8 @@
 Tutorial by Sonny Sangha
 https://www.youtube.com/watch?v=I2dcpatq54o&t=3583s&ab_channel=SonnySangha
 
-`npm run dev`
+frontend — in `medium-clone` main dir run `npm run dev`
+backend — in `medium-clone/mediumclone` the child dir run `sanity start`
 
 2 apps running
 Next.js for the front-end
@@ -519,3 +520,197 @@ Now we're going to use an API react-hook-form to implement and validate a form, 
 We don't need redux in this build because of the way we're pre-rendering the pages
 
 Keep on going in `[slug].tsx`
+
+React Hook Form
+`npm install  react-hook-form` in main dir
+`import { useForm, SubmitHandler } from 'react-hook-form';` in `[slug].tsx`
+
+At the top of the Props func, `const { register, handleSubmit, formState: {errors} } = useForm();`
+
+Let's define the form fields in TypeScript
+```
+interface inputFormInput {
+  _id: string;
+  name: string;
+  email: string;
+  comment: string;
+}
+```
+If we put name? that makes it optional and not required, but let's leave it required
+
+Then use it as a template
+```
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<inputFormInput>();
+```
+
+We'll embed an invisible ID
+```
+          <input
+            {...register('_id')}
+            type='hidden'
+            name='_id'
+            value={post._id}
+          />
+```
+
+That's the magic register function from react hook form
+`{...register('name', { required: true })}`
+`{...register('email', { required: true })}`
+`{...register('comment', { required: true })}`
+
+Boom that's our form validation
+
+All these fields are required, meaning we need to print errors when the fields are left blank
+
+{errors.name} is from
+```
+const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<inputFormInput>();
+```
+
+Add a submit button
+
+Now we need to connect submit form logic to `form`
+`onSubmit={handleSubmit(onSubmit)}`
+Their function takes ours as an argument and ours handles the data
+
+onSubmit will create a fetch to **our API** (we haven't created it yet) with endpoint createComment
+
+```
+const onSubmit: SubmitHandler<inputFormInput> = async(data) => {
+    // push data from form to backend api
+    await fetch('/api/createComment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  };
+```
+Then on the backend is push it to the db
+
+---
+Now we need to
+## Create API Endpoint
+In Next.js, we have that intermediate server, meaning we have a **built in API** Don't believe me? Look at `pages/api/hello.ts`
+Go to localhost:3000/api/hello
+The dummy data comes back `{"name":"John Doe"}`!!
+
+Create `pages/api/createComment.ts`
+Copy and paste contents of hello.ts into createComment.ts
+
+Add
+ ```
+const config = {
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  useCdn: process.env.NODE_ENV === 'production',
+  token: process.env.SANITY_API_TOKEN,
+};
+```
+
+also
+ `npm install @sanity/client` in main dir
+ also
+```
+import sanityClient from '@sanity-client';
+const client = sanityClient(config);
+```
+
+So we have
+```
+import sanityClient from '@sanity/client';
+
+const config = {
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  useCdn: process.env.NODE_ENV === 'production',
+  token: process.env.SANITY_API_TOKEN,
+};
+
+const client = sanityClient(config);
+
+```
+
+But what's that magic token......? wonderful question
+Go to the sanity dashboard https://www.sanity.io/, go to API tab, go to tokens, click Add API token, give editor permissions, copy the token
+
+Go to `.env.local`
+Add `SANITY_API_TOKEN=` to my super secret code
+**THIS IS A SECRETTTT CODEEEE** so im not sharing it in this readme and .env.local is in my .gitignore. only I shall have this code.
+
+restart next.js server because we changed the env vars
+
+That key allows us on the API to read and write to the DB
+
+Now we pull apart those 4 vars from the request body / form
+Go to `pages/api/createComment.ts`
+`const { _id, name, email, comment } = JSON.parse(req.body);`
+
+```
+  try {
+    // create a document in Sanity CMS
+    await client.create({
+      // we're creating a new type comment, so we'll need a need schema too
+      _type: 'comment',
+      post: {
+        _type: 'reference',
+        _ref: _id
+      },
+      name,
+      email,
+      comment
+    })
+  }
+```
+
+We need to update the Sanity Studio Schema, so it knows to look for comments
+Go to `medium-clone/mediumclone/schemas` for the backend stuffffs
+Create a new schema. Create a new file in that folder `comment.js`
+
+```
+export default {
+  name: "comment",
+  type: "document",
+  title: "Comment",
+  fields: [
+    {
+      name: "name",
+      type: "string",
+    },
+    {
+      title: "Approved",
+      name: "approved",
+      type: "boolean",
+      description: "Comments won't show on the site without approval",
+    },
+    {
+      name: "email",
+      type: "string",
+    },
+    {
+      name: "comment",
+      type: "text",
+    },
+    {
+      name: "post",
+      type: "reference",
+      to: [{ type: "post" }],
+    },
+  ],
+};
+
+```
+
+Then go to `schema.js`
+`import comment from "./comment";`
+`comment,` (add it to the list)
+
+Dope
+
+Let's add some kind of confirmation that the form was successfully submitted

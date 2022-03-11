@@ -3,6 +3,14 @@ import Header from '../../components/Header';
 import { GetStaticProps } from 'next';
 import { Post } from '../../typings';
 import PortableText from 'react-portable-text';
+import { useForm, SubmitHandler } from 'react-hook-form';
+
+interface inputFormInput {
+  _id: string;
+  name: string;
+  email: string;
+  comment: string;
+}
 
 // We need to define our prop types
 interface Props {
@@ -12,6 +20,24 @@ interface Props {
 // Was props: Props before destructuring
 function Post({ post }: Props) {
   // console.log(post);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<inputFormInput>();
+
+  const onSubmit: SubmitHandler<inputFormInput> = async(data) => {
+    // push data from form to backend api
+    fetch('/api/createComment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }).then(() => {
+      console.log(data);
+    }).catch((err) => {
+      console.log(err);
+    })
+  };
 
   return (
     <main>
@@ -67,25 +93,67 @@ function Post({ post }: Props) {
 
         <hr className='max-w-lg my-5 mx-auto border border-yellow-500' />
 
-        <form className='flex flex-col p-5 max-w-2xl mx-auto mb-10'>
+        <form
+          className='flex flex-col p-5 max-w-2xl mx-auto mb-10'
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <h3 className='text-sm text-yellow-500'>Enjoyed the article?</h3>
           <h4 className='text-3xl font-bold'>Leave a comment below!</h4>
           <hr className='py-3 mt-2' />
 
-          <label>
-            <span>Name</span>
-            <input placeholder='Kaitlin Berryman' type='text'/>
+          <input
+            {...register('_id')}
+            type='hidden'
+            name='_id'
+            value={post._id}
+          />
+
+
+          <label className='block mb-5'>
+            <span className='text-gray-700'>Name</span>
+            <input
+              {...register('name', { required: true })}
+              className='shadow border rounded py-2 px-3 form-input mt-1 block w-full ring-yellow-500 outline-none focus:ring'
+              placeholder='Kaitlin Berryman'
+              type='text'
+            />
           </label>
 
-          <label>
-            <span>Email</span>
-            <input placeholder='kaitlinberryman@gmail.com' type='text'/>
+          <label className='block mb-5'>
+            <span className='text-gray-700'>Email</span>
+            <input
+               {...register('email', { required: true })}
+              className='shadow border rounded py-2 px-3 form-input mt-1 block w-full ring-yellow-500 outline-none focus:ring'
+              placeholder='kaitlinberryman@gmail.com'
+              type='email'
+            />
           </label>
 
-          <label>
-            <span>Comment</span>
-            <textarea placeholder='Coolest Name Ever' rows={8}/>
+          <label className='block mb-5'>
+            <span className='text-gray-700'>Comment</span>
+            <textarea
+               {...register('comment', { required: true })}
+              className='shadow border rounded py-2 px-3 form-textarea mt-1 block w-full ring-yellow-500 outline-none focus:ring'
+              placeholder='Type anything you want'
+              rows={8}
+            />
           </label>
+
+          {/* errors will return when field validation fails */}
+          {/* if there's errors.name, render the following */}
+          <div className='flex flex-col p-5'>
+            {errors.name && (
+              <span className='text-red-500'>- The Name Field is required</span>
+            )}
+            {errors.comment && (
+              <span className='text-red-500'>- The Comment Field is required</span>
+            )}
+            {errors.email && (
+              <span className='text-red-500'>- The Email Field is required</span>
+            )}
+          </div>
+
+          <input className='shadow bg-yellow-500 hover:bg-yellow-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded cursor-pointer' type='submit' />
         </form>
 
 
