@@ -230,3 +230,131 @@ A CDN (content distribution network) is a way of caching your local edge servers
 ----
 
 Now we need to use the sanity client to make a fetch from our local set up
+
+
+## Implementing Next.js Server Side Rendering (SSR)
+
+Anytime someone comes to the homepage, it'll render per request.
+
+### Next.js
+Typically with React the entire bundle gets delivered to the user, but that gets heavy quickly. Every single page/picture/thing is inside of that one bundle, which causes scaling problems.
+
+Next.js is here to help!
+
+Between the user and React, Next.js intercepts the stuff and does it's logic. Next.js only gives the user the page — it page splits. That's why we have a `pages/` folder. **We call this page splitting**.
+
+What we have now is **static rendering**, meaning everything is pre-built at build time. JS can run on the client. This is typically slow and sad.
+
+Server-side rendering is here to help! (SSR)
+
+When using SSR, the server renders per request. It builds it on the client, which means it's fastttt.
+
+To make SSR work within Next.js, go to `index.tsx`  and use a function called `getServerSideProps`, which is where the server pre-builds the page. Remember this runs every request. Since we're putting it in our `'/'` route, this changes it into a SSR route.
+
+-----
+
+Add a description to our posts
+Go to `mediumclone/schemas/post.js` and just add another field
+Add a description in backend UI
+
+-----
+
+Okay back to `index.tsx`
+
+Set `query` in `getServerSideProps`
+```
+export const getServerSideProps = async () => {
+  // fetch info from Sanity
+  const query = `*[_type == "post"]{
+  _id,
+  title,
+  description,
+  mainImage,
+  slug,
+  author -> {
+    name,
+    image
+  }
+}`;
+}
+```
+
+Now set `posts`
+`import { sanityClient, urlFor } from '../sanity';`
+`const posts = await sanityClient.fetch(query);`
+
+How do we move data from Next.js to React...?
+Data is passed through the props!!
+
+Now this function is done
+```
+export const getServerSideProps = async () => {
+  // fetch info from Sanity
+  const query = `*[_type == "post"]{
+  _id,
+  title,
+  description,
+  mainImage,
+  slug,
+  author -> {
+    name,
+    image
+  }
+}`;
+
+  const posts = await sanityClient.fetch(query);
+
+  return {
+    props: {
+      posts,
+    }
+  };
+};
+```
+
+Okay now we pull the props in
+Scroll up to the top of `index.tsx` and pass the props in
+TypeScript requires us to say the type of props `props: Props`
+
+Okay let's make an interface that defines type `Props`, which allows extending for (type) inheritance
+```
+interface Props {
+  // An aaray of type Post
+  posts: [Post];
+}
+```
+
+but now we need type Post
+In the main dir, create `typings.d.ts`, which is a TypeScript Definition file to store our type definitions. We'll define Post in here.
+
+This is modeled after what we see in our backend UI "vision" page
+```
+export interface Post {
+  _id: string;
+  _createdAt: string;
+  title: string;
+  author: {
+    name: string;
+    image: string;
+  };
+  description: string;
+  mainImage: {
+    asset: {
+      url: string;
+    };
+  };
+  slug: {
+    current: string;
+  };
+  body: [object];
+}
+```
+
+Go back to `index.tsx`
+`import { Post } from '../typings';`
+
+Now destructure the props to get the posts out `({ posts }: Props)`
+
+Add a `console.log(posts);` to test if the SSR worked and to see if our front-end and back-end are successfully tied together
+
+It worked :D

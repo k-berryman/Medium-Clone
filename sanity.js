@@ -20,7 +20,7 @@ export const config = {
   // this means dataset defaults to production if it can't find ours
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
 
-  projectId: proccess.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   apiVersion: '2021-03-25',
 
   /**
