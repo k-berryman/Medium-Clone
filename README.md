@@ -5,6 +5,10 @@ https://www.youtube.com/watch?v=I2dcpatq54o&t=3583s&ab_channel=SonnySangha
 
 `npm run dev`
 
+2 apps running
+Next.js for the front-end
+Sanity Studio for back-end
+
 ### Used Next.js, TypeScript, React, Sanity CMS, Tailwind CSS 3.0, ISR
 
 #### What is Next.js?
@@ -111,3 +115,118 @@ For example, here on a small screen it's hidden, on a medium screen and bigger i
 Add `flex` to `header` to put things in a horizontal line in React
 
 ### Build the Banner Component
+Got it, cool
+
+### Implementing Sanity CMS
+Back-end!!!
+Go to `sanity.io`, choose current project (mediumclone)
+
+Open a new terminal, `cd mediumclone` (which is the sanity dir. once again, poor naming on my part)
+
+Reminder — we've already done `sanity login` (if needed) and `sanity init`
+
+Now do `sanity start` to spin up our local Sanity Studio
+Go to `http://localhost:3333` and log-in
+
+We already have some schema. See `mediumclone/schemas/` and see how it matches the Sanity Studio sidebar. `slugs` are `/the-rest-of-the-url`
+
+#### Create a post via the UI
+
+#### Now let's pull this post via the app
+Go to the `vision` tab in the Sanity Studio
+Under `Query` is where we type our GROQ syntax
+Anything with the underscore is a built in attribute from Sanity
+```
+*[_type == "post"]{
+  _id,
+  title,
+  description,
+  slug,
+  author -> {
+    name,
+    image
+  }
+}
+```
+
+#### Now we to run this query from our frontend to pull in that info.
+Create `sanity.js` in the main project dir (`medium-clone/sanity.js`. This is basically our config file.
+
+Also `npm install next-sanity`
+
+This code is an example from the Sanity website
+```
+import {
+  createImageUrlBuilder,
+  createCurrentUserHook,
+  createClient,
+} from "next-sanity";
+
+export const config = {
+  /**
+  * Find your project ID and dataset in `sanity.json` in your studio project.
+  * These are considered "public", but you can user environent variables
+  * if you want differ between local dev and production
+  *
+  * https://nextjs.org/docs/basic-features/environent-variables
+  *
+  * In my sanity folder `mediumclone/`, open `sanity.json`
+  * under `api`, see the `projectId` and `dataset`.
+  * I added these to my environment variables
+  **/
+
+  // this means dataset defaults to production if it can't find ours
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+
+  projectId: proccess.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  apiVersion: '2021-03-25',
+
+  /**
+  * Set useCdn to `false` if your application requires the freshest possible
+  * data always (potentially slower and a bit more expensive).
+  * Authenticated request (like preview) will always bypass the CDN
+  **/
+
+  // if it's in prod, it'll use the cdn. if not, it won't
+  useCdn: process.env.NODE_ENV === 'production',
+};
+
+// Set up the client for fetching data in the getProps page functions
+// This is what we use to fetch info & make queries
+// Needed to query to our backend
+export const sanityClient = createClient(config);
+
+/**
+* Set up a helper function for generating Image URLs with only
+* the asset reference data in your documents.
+* Read more: https://www.sanity.io/docs/image-url
+**/
+
+// Helper function to extract img url from img
+export const urlFor = (source) => createImageUrlBuilder(config).image(source);
+
+// Helper function for using the current logged in user account
+export const useCurrentUser = createCurrentUserHook(config);
+```
+
+We're going to create a const `config`
+
+In the sanity folder `mediumclone/`, open `sanity.json` under `api`, see the `projectId` and `dataset`.
+
+Add these to the environment variables
+In the main dir, create `.env.local`, which will be where we store the environment variables
+
+```
+NEXT_PUBLIC_SANITY_DATASET=production
+NEXT_PUBLIC_SANITY_PROJECT_ID=m4ai8n6r
+```
+
+This is not private info, hence the `NEXT_PUBLIC` part and why I'm typing this here right now, lol
+
+Restart the Next.js server (frontend) because we changed our environment variables `npm run dev`
+
+A CDN (content distribution network) is a way of caching your local edge servers, so apps get served really fast. It loads up closer to the user.
+
+----
+
+Now we need to use the sanity client to make a fetch from our local set up
