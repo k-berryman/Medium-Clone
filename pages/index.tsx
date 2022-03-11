@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Banner from '../components/Banner';
 import { sanityClient, urlFor } from '../sanity';
 import { Post } from '../typings';
+import Link from 'next/link';
 
 interface Props {
   // An aaray of type Post
@@ -25,6 +26,22 @@ const Home: NextPage = ({ posts }: Props) => {
       <Banner />
 
       {/* Posts */}
+      <div>
+        {/* Go through every post. Each post will be a link */}
+        {posts.map(post => (
+          <Link key={post._id} href={`/post/${post.slug.current}`}>
+            <div>
+              {post.mainImage && (
+                <img
+                  src={urlFor(post.mainImage).url()!}
+                  alt=''
+                />                
+              )}
+
+            </div>
+          </Link>
+        ))}
+      </div>
 
 
     </div>
