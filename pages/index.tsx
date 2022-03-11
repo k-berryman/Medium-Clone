@@ -13,7 +13,7 @@ interface Props {
 }
 
 
-const Home: NextPage = ({ posts }) => {
+export default function Home = ({ posts }) => {
   console.log(posts);
   return (
     <div className='max-w-7xl mx-auto'>
@@ -60,7 +60,7 @@ const Home: NextPage = ({ posts }) => {
   )
 }
 
-export default Home
+// export default Home
 
 export const getServerSideProps = async () => {
   // fetch info from Sanity
